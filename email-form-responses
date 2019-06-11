@@ -7,7 +7,7 @@ function Test(e) {
   var date = Utilities.formatDate(new Date(), "GMT-5", "MM/dd/yyyy")
   var dateTime = new Date();
   dateTime = dateTime.toLocaleTimeString();
-  var doc = DocumentApp.create('Legal Risk Submission' + ' ' + date + dateTime);
+  var doc = DocumentApp.create('Form Responses' + ' ' + date + dateTime);
   var docId = doc.getId();
 
   // Use editAsText to obtain a single text element containing all the characters in the document.
@@ -156,9 +156,9 @@ function Test(e) {
   var pdf = DriveApp.getFileById(docId).getAs("application/pdf");
   
   // Find the folder or create it if it does not exist
-  var folderSearch = DriveApp.getFoldersByName("Legal Risk Memorandums");
+  var folderSearch = DriveApp.getFoldersByName("Form Responses");
   if (!folderSearch.hasNext()) {
-    var folder = DriveApp.createFolder("Legal Risk Memorandums");
+    var folder = DriveApp.createFolder("Form Responses");
   }
   else { 
     var folder = folderSearch.next();
@@ -176,9 +176,9 @@ function Test(e) {
   }
 
   // Sends the email
-  var email_Address =  "amy.holloway@capitalone.com"
-  var subject = "TestingLegal";
+  var email_Address =  "amy.domanico@gmail.com"
+  var subject = "TestResponse";
   var body    = "View submissions here: " + folderLink; 
-  MailApp.sendEmail(email_Address,  subject, body, {attachments: pdf, name: 'CASTOPS@CAPITALONE'});
+  MailApp.sendEmail(email_Address,  subject, body, {attachments: pdf, name: 'YourEmailAlias'});
   DriveApp.getFileById(docId).setTrashed(true);
 }
