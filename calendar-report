@@ -1,0 +1,107 @@
+/**
+ * Lists upcoming events in the user's calendar for 2 weeks
+ */
+function listUpcomingEvents() {
+  var date = Utilities.formatDate(new Date(), "GMT-5", "MM/dd/yyyy");
+  var dateTime = new Date();
+  dateTime = dateTime.toLocaleTimeString();
+  var doc = DocumentApp.create('Calendar Report' + ' ' + date + ' ' + dateTime);
+
+  // Use editAsText to obtain a single text element containing all the characters in the document.
+  var text = doc.editAsText();
+  text.setFontFamily('Times New Roman');
+  text.setFontSize(12);
+  
+  var twoWeeks = new Date(Date.now() + 12096e5);
+  var calendarId = 'primary';
+  // var calendarId = 'uday.natarajan@capitalone.com';
+  var optionalArgs = {
+    timeMin: (new Date()).toISOString(),
+    timeMax: twoWeeks.toISOString(),
+    showDeleted: false,
+    singleEvents: true,
+    maxResults: 10,
+    orderBy: 'startTime'
+  };
+  var response = Calendar.Events.list(calendarId, optionalArgs);
+  var events = response.items;
+  if (events.length > 0) {
+    for (i = 0; i < events.length; i++) {
+      var event = events[i];
+      var start = event.start.dateTime;
+      var end = event.end.dateTime;
+      if (!start || !end) {
+        start = event.start.date;
+        end = event.end.date;
+      }
+      // reformat time stamp
+      else {
+        start = start.substring(0,10) + ' ' + start.substring(11, 16);
+        end = end.substring(0,10) + ' ' + end.substring(11, 16);
+      }
+      var title = event.summary;
+      var time = start + ' - ' + end;
+      var output = title + '\n' + time;
+      if (event.location) {
+        output += '\n' + event.location;
+      }
+      if (event.attendees && event.attendees.length > 0) {
+        output += '\n';
+        var attendees = event.attendees;
+        var numAttendees = attendees.length;
+        var plus = '';
+        if (numAttendees > 5) {
+          numAttendees = 5;
+          plus = ' and ';
+          plus += event.attendees.length-5 + ' others';
+        }
+        for (var j = 0; j < numAttendees; j++) {
+          var email = attendees[j].email;
+          var name = email.substring(0, email.indexOf('@')) + ' (' + attendees[j].responseStatus + ')';
+          if (j != numAttendees-1) {
+            output += name + ', ';
+          }
+          else { 
+            output += name;
+          }
+        }
+        output += plus;
+      }
+      if (event.description) {
+        output += '\n\n';
+        var description = event.description;
+        //remove raw html tags
+        while (description.indexOf('<br>') > 0) {
+          description = description.replace('<br>', '');
+        }
+        if (description.indexOf('&nbsp;') > 0) {
+          output += description.substring(0, description.indexOf('&nbsp;'));
+        }
+        else if (description.indexOf('──────────') > 0) { 
+          output += description.substring(0, description.indexOf('──────────'));
+        }
+        else {
+          output += description;
+        }
+      }
+      output += '\n\n';
+      text.appendText(output);
+      //format document (doesn't bold text with special characters)
+      var findElement;
+      var elementText;
+      if (title != '' && text.findText(title)) {
+        findElement = text.findText(title);
+        elementText = findElement.getElement().asText();
+        elementText.setBold(findElement.getStartOffset(), findElement.getEndOffsetInclusive(), true);
+        elementText.setFontSize(16);
+      }
+      if (time != '' && text.findText(time)) {
+        findElement = text.findText(time);
+        elementText = findElement.getElement().asText();
+        elementText.setBold(findElement.getStartOffset(), findElement.getEndOffsetInclusive(), true);
+      }
+    }
+  } else {
+    Logger.log('No upcoming events found.');
+  }
+}
