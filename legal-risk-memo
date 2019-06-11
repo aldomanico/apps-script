@@ -1,0 +1,183 @@
+
+// Converts google spreadsheet entries into formatted pdf, which is saved to Drive and emailed to recipients
+
+function Test(e) {
+  // Create a new document
+  var date = Utilities.formatDate(new Date(), "GMT-5", "MM/dd/yyyy")
+  var dateTime = new Date();
+  dateTime = dateTime.toLocaleTimeString();
+  var doc = DocumentApp.create('Legal Risk Submission' + ' ' + date + dateTime);
+  var docId = doc.getId();
+
+  // Use editAsText to obtain a single text element containing all the characters in the document.
+  var text = doc.editAsText();
+  text.setFontFamily('Times New Roman');
+  
+  // Save document variables to be used later
+  var transName = '';
+  var serengeti = '';
+  var associate = '';
+
+  // To return the last (submitted) set of responses
+  /*var itemResponses = e.response.getItemResponses();
+  for (var j = 0; j < itemResponses.length; j++) {
+    var itemResponse = itemResponses[j];
+    
+    // Insert each question, bolded
+    var currentQuestion = itemResponse.getItem().getTitle();
+    while(currentQuestion.indexOf('(') > 0 || currentQuestion.indexOf(')') > 0 || currentQuestion.indexOf('-') > 0 || currentQuestion.indexOf('?') > 0) {
+      currentQuestion = currentQuestion.replace('(', 'xxx');
+      currentQuestion = currentQuestion.replace(')', 'zzz');
+      currentQuestion = currentQuestion.replace('-', 'qqq');
+      currentQuestion = currentQuestion.replace('?', 'aaa');
+    }
+    text.appendText(currentQuestion);
+    if (currentQuestion != '') {
+      var question = text.findText(currentQuestion);
+    }
+    if (question) {
+      var questionText = question.getElement().asText();
+      questionText.setBold(question.getStartOffset(), question.getEndOffsetInclusive(), true);
+    }
+    while(questionText.findText('xxx') || questionText.findText('qqq') || questionText.findText('aaa')) {
+      questionText = questionText.replaceText('xxx', '(');
+      questionText = questionText.replaceText('zzz', ')');
+      questionText = questionText.replaceText('qqq', '-');
+      questionText = questionText.replaceText('aaa', '?');
+    }
+    // Insert each answer
+    if (currentQuestion == 'Name of transaction and primary transaction document') {
+      transName = itemResponse.getResponse();
+    }
+    else if (currentQuestion == 'Serengeti Matter Number') {
+      serengeti = itemResponse.getResponse();
+    }
+    else if (currentQuestion == 'Business Associate') {
+      associate = itemResponse.getResponse();
+    }
+    text.appendText('\n' +  itemResponse.getResponse() + '\n\n');
+  }*/
+  
+  // To return the last set of responses
+  var form = FormApp.openById('1ubnuIk_VlfC1si8ZHO_iQF30EB0p0wbzf73GIDJSrVM');
+  var formResponses = form.getResponses();
+  var formResponse = formResponses[formResponses.length-1];
+  var itemResponses = formResponse.getItemResponses();
+  for (var j = 0; j < itemResponses.length; j++) {
+    var itemResponse = itemResponses[j];
+    // Insert each question, bolded
+    var currentQuestion = itemResponse.getItem().getTitle();
+    while(currentQuestion.indexOf('(') > 0 || currentQuestion.indexOf(')') > 0 || currentQuestion.indexOf('-') > 0 || currentQuestion.indexOf('?') > 0) {
+      currentQuestion = currentQuestion.replace('(', 'xxx');
+      currentQuestion = currentQuestion.replace(')', 'zzz');
+      currentQuestion = currentQuestion.replace('-', 'qqq');
+      currentQuestion = currentQuestion.replace('?', 'aaa');
+    }
+    text.appendText(currentQuestion);
+    if (currentQuestion != '') {
+      var question = text.findText(currentQuestion);
+    }
+    if (question) {
+      var questionText = question.getElement().asText();
+      questionText.setBold(question.getStartOffset(), question.getEndOffsetInclusive(), true);
+    }
+    while(questionText.findText('xxx') || questionText.findText('qqq') || questionText.findText('aaa')) {
+      questionText = questionText.replaceText('xxx', '(');
+      questionText = questionText.replaceText('zzz', ')');
+      questionText = questionText.replaceText('qqq', '-');
+      questionText = questionText.replaceText('aaa', '?');
+    }
+    // Insert each answer
+    if (currentQuestion == 'Name of transaction and primary transaction document') {
+      transName = itemResponse.getResponse();
+    }
+    else if (currentQuestion == 'Serengeti Matter Number') {
+      serengeti = itemResponse.getResponse();
+    }
+    else if (currentQuestion == 'Business Associate') {
+      associate = itemResponse.getResponse();
+    }
+    text.appendText('\n' +  itemResponse.getResponse() + '\n\n');
+  }
+  
+  // Rename document with Transaction Name and Serengetti Matter Number
+  doc.setName('LRM' + ' '+ transName + ' ' + serengeti + ' ' + date);
+  
+  // Add document header section
+  var header = doc.addHeader().editAsText();
+  header.insertText(0, '\nCorporate Transaction Legal Risk Memorandum \n\n');
+  header.appendText(transName + '\n');
+  header.appendText(associate + '\n');
+  header.appendText(date + '\n');
+  
+  // Reformat header
+  var title = header.findText('Corporate Transaction Legal Risk Memorandum');
+  if (title !== null) {
+    var titleText = title.getElement().asText();
+    titleText.setBold(title.getStartOffset(), title.getEndOffsetInclusive(), true);
+    titleText.setFontSize(20);
+  }
+  var transLoc = header.findText(transName);
+  if (transLoc !== null) {
+    var transText = transLoc.getElement().asText();
+    transText.setBold(transLoc.getStartOffset(), transLoc.getEndOffsetInclusive(), true);
+    transText.setFontSize(16);
+  }
+  var associateLoc = header.findText(associate);
+  if (associateLoc !== null) {
+    var associateText = associateLoc.getElement().asText();
+    associateText.setBold(associateLoc.getStartOffset(), associateLoc.getEndOffsetInclusive(), true);
+    associateText.setFontSize(12);
+  }
+  var dateLoc = header.findText(date);
+  if (dateLoc !== null) {
+    var dateText = dateLoc.getElement().asText();
+    dateText.setBold(dateLoc.getStartOffset(), dateLoc.getEndOffsetInclusive(), true);
+    dateText.setFontSize(12);
+  }
+  
+  // To iterate through each response of the form and add them to the doc template
+  /*var form = FormApp.openById('1vLp5njQGZoUO8LHn5rVr8HP6zoKaGP9Zbbbe9XgRpXc');
+  var formResponses = form.getResponses();
+  for (var i = 0; i < formResponses.length; i++) {
+    var formResponse = formResponses[i];
+    var itemResponses = formResponse.getItemResponses();
+    for (var j = 0; j < itemResponses.length; j++) {
+      var itemResponse = itemResponses[j];
+      // Insert text at the end of the document.
+      text.appendText(itemResponse.getItem().getTitle() + '\n' +  itemResponse.getResponse() + '\n\n');
+    }
+  }*/
+  
+  doc.saveAndClose();
+
+  // Convert document to PDF by using the getAs blob conversion
+  var pdf = DriveApp.getFileById(docId).getAs("application/pdf");
+  
+  // Find the folder or create it if it does not exist
+  var folderSearch = DriveApp.getFoldersByName("Legal Risk Memorandums");
+  if (!folderSearch.hasNext()) {
+    var folder = DriveApp.createFolder("Legal Risk Memorandums");
+  }
+  else { 
+    var folder = folderSearch.next();
+  }
+  var folderLink = folder.getUrl();
+  folder.createFile(pdf);
+  
+  // Get Submitter email address to use as recipient
+  var submitter = formResponse.getRespondentEmail();
+  // Allow submitter access to the shared Drive folder
+  var emails = new Array(0);
+  emails[0] = submitter;
+  if (emails[0] != "") {
+    folder.addViewers(emails);
+  }
+
+  // Sends the email
+  var email_Address =  "amy.holloway@capitalone.com"
+  var subject = "TestingLegal";
+  var body    = "View submissions here: " + folderLink; 
+  MailApp.sendEmail(email_Address,  subject, body, {attachments: pdf, name: 'CASTOPS@CAPITALONE'});
+  DriveApp.getFileById(docId).setTrashed(true);
+}
