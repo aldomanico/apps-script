@@ -14,7 +14,6 @@ function listUpcomingEvents() {
   
   var twoWeeks = new Date(Date.now() + 12096e5);
   var calendarId = 'primary';
-  // var calendarId = 'uday.natarajan@capitalone.com';
   var optionalArgs = {
     timeMin: (new Date()).toISOString(),
     timeMax: twoWeeks.toISOString(),
