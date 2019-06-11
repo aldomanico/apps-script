@@ -1,6 +1,6 @@
 
 /**
- * Converts google spreadsheet entries into formatted pdf, which is saved to Drive and emailed to recipients
+ * Converts google form entries into formatted pdf, which is saved to Drive and emailed to recipients
  */
 function Test(e) {
   // Create a new document
